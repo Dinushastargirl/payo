@@ -27,9 +27,11 @@ function App() {
 
   const handleStart = () => {
     setStarted(true);
-    // Play background music here
-    const audio = document.getElementById('bgm');
-    if (audio) audio.play();
+    // Play background music and voiceover here
+    const bgm = document.getElementById('bgm');
+    const voiceover = document.getElementById('voiceover');
+    if (bgm) bgm.play();
+    if (voiceover) voiceover.play();
   };
 
   return (
@@ -71,6 +73,11 @@ function App() {
           <audio id="bgm" loop>
             <source src="/audio/cinematic.mp3" type="audio/mpeg" />
             {/* Note: Provide a cinematic mp3 in public/audio/cinematic.mp3 */}
+          </audio>
+
+          <audio id="voiceover">
+            <source src="/audio/voiceover.mp3" type="audio/mpeg" />
+            {/* Note: Provide your voiceover mp3 in public/audio/voiceover.mp3 */}
           </audio>
         </>
       )}

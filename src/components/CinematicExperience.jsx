@@ -27,7 +27,31 @@ export function CinematicExperience() {
       z: 0.5,
       duration: 5,
       ease: "power2.inOut"
-    }, 12);
+    }, 30);
+
+    // Scene 4 & 5: Golden World (Camera pulls back a bit)
+    tl.to(camera.position, {
+      z: 2.5,
+      duration: 10,
+      ease: "power2.inOut"
+    }, 60);
+
+    // Scene 6: The Blessing (Camera moves slowly across)
+    tl.to(camera.position, {
+      x: 1,
+      y: 0.5,
+      duration: 20,
+      ease: "linear"
+    }, 85);
+
+    // Final ending (Camera pulls way back, fading to infinity)
+    tl.to(camera.position, {
+      z: 15,
+      x: 0,
+      y: 0,
+      duration: 15,
+      ease: "power2.inOut"
+    }, 115);
 
     timelineRef.current = tl;
 
