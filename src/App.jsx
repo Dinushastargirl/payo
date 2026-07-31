@@ -69,18 +69,16 @@ function App() {
           </Canvas>
 
           <TypographyOverlay />
-          
-          <audio id="bgm" loop>
-            <source src="/audio/cinematic.mp3" type="audio/mpeg" />
-            {/* Note: Provide a cinematic mp3 in public/audio/cinematic.mp3 */}
-          </audio>
-
-          <audio id="voiceover">
-            <source src="/audio/voiceover.mp3" type="audio/mpeg" />
-            {/* Note: Provide your voiceover mp3 in public/audio/voiceover.mp3 */}
-          </audio>
         </>
       )}
+
+      <audio id="bgm" loop>
+        <source src="/audio/cinematic.mp3" type="audio/mpeg" />
+      </audio>
+
+      <audio id="voiceover">
+        <source src="/audio/voiceover.mp3" type="audio/mpeg" />
+      </audio>
     </div>
   );
 }
