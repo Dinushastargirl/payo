@@ -25,13 +25,20 @@ function App() {
   const [started, setStarted] = useState(false);
   const containerRef = useRef();
 
+  useEffect(() => {
+    window.playVoice = (num) => {
+      const v = document.getElementById(`voice${num}`);
+      if (v) {
+        v.currentTime = 0;
+        v.play();
+      }
+    };
+  }, []);
+
   const handleStart = () => {
     setStarted(true);
-    // Play background music and voiceover here
     const bgm = document.getElementById('bgm');
-    const voiceover = document.getElementById('voiceover');
     if (bgm) bgm.play();
-    if (voiceover) voiceover.play();
   };
 
   return (
@@ -76,9 +83,11 @@ function App() {
         <source src="/audio/cinematic.mp3" type="audio/mpeg" />
       </audio>
 
-      <audio id="voiceover">
-        <source src="/audio/voiceover.mp3" type="audio/mpeg" />
-      </audio>
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+        <audio key={num} id={`voice${num}`}>
+          <source src={`/audio/voice${num}.mp3`} type="audio/mpeg" />
+        </audio>
+      ))}
     </div>
   );
 }

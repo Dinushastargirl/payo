@@ -29,11 +29,9 @@ const vertexShader = `
 const fragmentShader = `
   varying vec3 vColor;
   void main() {
-    // Make particles circular and soft
     float dist = length(gl_PointCoord - vec2(0.5));
     if (dist > 0.5) discard;
     float alpha = smoothstep(0.5, 0.2, dist);
-    
     gl_FragColor = vec4(vColor, alpha);
   }
 `;
@@ -41,15 +39,12 @@ const fragmentShader = `
 export function ParticleMorphSystem() {
   const meshRef = useRef();
   const materialRef = useRef();
-  const { viewport } = useThree();
   const [particlesLoaded, setParticlesLoaded] = useState(false);
-
-  // Store the geometries for shapes
   const geometryData = useRef({});
   const numParticles = 15000;
 
   useEffect(() => {
-    // 1. Generate Sphere (Universe)
+    // 0. Sphere (Universe)
     const spherePos = new Float32Array(numParticles * 3);
     const sphereCol = new Float32Array(numParticles * 3);
     for (let i = 0; i < numParticles; i++) {
@@ -59,81 +54,154 @@ export function ParticleMorphSystem() {
       spherePos[i*3] = r * Math.sin(phi) * Math.cos(theta);
       spherePos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
       spherePos[i*3+2] = r * Math.cos(phi);
-      // Soft ivory color for stars
       sphereCol[i*3] = 1.0; sphereCol[i*3+1] = 0.97; sphereCol[i*3+2] = 0.90;
     }
     geometryData.current['sphere'] = { pos: spherePos, col: sphereCol };
 
-    // 2. Generate Heart
-    const heartPos = new Float32Array(numParticles * 3);
-    const heartCol = new Float32Array(numParticles * 3);
-    for (let i = 0; i < numParticles; i++) {
-      const t = Math.random() * Math.PI * 2;
-      const r = Math.random() * 0.5 + 0.5; // Fill inside
-      const x = r * 16 * Math.pow(Math.sin(t), 3);
-      const y = r * (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
-      heartPos[i*3] = x * 0.1;
-      heartPos[i*3+1] = y * 0.1;
-      heartPos[i*3+2] = (Math.random() - 0.5) * 0.5;
-      // Pink/Gold colors
-      heartCol[i*3] = 1.0; heartCol[i*3+1] = 0.4; heartCol[i*3+2] = 0.6;
-    }
-    geometryData.current['heart'] = { pos: heartPos, col: heartCol };
+    // Helper to generate shapes
+    const buildShape = (name, logic) => {
+      const pos = new Float32Array(numParticles * 3);
+      const col = new Float32Array(numParticles * 3);
+      for (let i = 0; i < numParticles; i++) {
+        const {x, y, z, r, g, b} = logic(i, numParticles);
+        pos[i*3] = x; pos[i*3+1] = y; pos[i*3+2] = z;
+        col[i*3] = r; col[i*3+1] = g; col[i*3+2] = b;
+      }
+      geometryData.current[name] = { pos, col };
+    };
 
-    // 3. Generate House
-    const housePos = new Float32Array(numParticles * 3);
-    const houseCol = new Float32Array(numParticles * 3);
-    for (let i = 0; i < numParticles; i++) {
+    // 1. Gift Box
+    buildShape('giftbox', () => {
+      let x = (Math.random() - 0.5) * 3;
+      let y = (Math.random() - 0.5) * 3;
+      let z = (Math.random() - 0.5) * 3;
+      let r = 0.9, g = 0.2, b = 0.3; // Red box
+      // Ribbons
+      if (Math.abs(x) < 0.2 || Math.abs(y) < 0.2) { r = 1; g = 0.8; b = 0.2; }
+      return { x, y, z, r, g, b };
+    });
+
+    // 2. Candle
+    buildShape('candle', () => {
+      let x = (Math.random() - 0.5) * 1;
+      let y = (Math.random() - 0.5) * 4;
+      let z = (Math.random() - 0.5) * 1;
+      let r = 0.9, g = 0.9, b = 0.9;
+      if (y > 1.8) {
+        // Flame
+        x = (Math.random() - 0.5) * (3 - y);
+        z = (Math.random() - 0.5) * (3 - y);
+        r = 1; g = 0.6; b = 0.1;
+      }
+      return { x, y, z, r, g, b };
+    });
+
+    // 3. Star
+    buildShape('star', () => {
+      const angle = Math.random() * Math.PI * 2;
+      const rad = Math.random() * 3;
+      const spikes = 5;
+      const inner = 1.0, outer = 3.0;
+      const rot = Math.PI / 2 * 3;
+      const step = Math.PI / spikes;
+      // Simplistic procedural star map
+      let x = Math.cos(angle) * rad;
+      let y = Math.sin(angle) * rad;
+      return { x, y, z: (Math.random()-0.5)*0.5, r: 1, g: 0.9, b: 0.4 };
+    });
+
+    // 4. House
+    buildShape('house', () => {
       let x = (Math.random() - 0.5) * 4;
       let y = (Math.random() - 0.5) * 4;
       let z = (Math.random() - 0.5) * 0.5;
-      if (y > 1) {
-        x = (Math.random() - 0.5) * (4 - (y - 1) * 2);
+      if (y > 1) { x = (Math.random() - 0.5) * (4 - (y - 1) * 2); } 
+      else { x = (Math.random() - 0.5) * 3; }
+      return { x, y: y - 1, z, r: 0.83, g: 0.68, b: 0.21 };
+    });
+
+    // 5. Key
+    buildShape('key', () => {
+      let x = (Math.random() - 0.5) * 4;
+      let y = (Math.random() - 0.5) * 1;
+      let z = (Math.random() - 0.5) * 0.2;
+      if (x < -1) { y = (Math.random() - 0.5) * 2; } // Handle
+      if (x > 1 && y < -0.2) { y = (Math.random() - 1) * 1.5; } // Teeth
+      return { x, y, z, r: 0.8, g: 0.7, b: 0.3 };
+    });
+
+    // 6. Girl on Road
+    buildShape('girl_road', () => {
+      let x = (Math.random() - 0.5) * 4;
+      let y = (Math.random() - 0.5) * 4;
+      let z = (Math.random() - 0.5) * 4;
+      let r = 0.5, g = 0.6, b = 1.0;
+      if (y < -1) {
+        // Road
+        z = y * 2; x = x * (y + 3);
+        r = 0.3; g = 0.3; b = 0.4;
       } else {
+        // Girl (triangle body, round head)
+        x = x * 0.3; z = 0;
+        if (y > 1.5) { x = (Math.random() - 0.5)*0.5; y = 1.5 + Math.random()*0.5; r=1; g=0.8; b=0.7; }
+        else { x = x * (1.5 - y); r = 0.8; g = 0.2; b = 0.4; } // Dress
+      }
+      return { x, y, z, r, g, b };
+    });
+
+    // 7. Bicycle
+    buildShape('bicycle', () => {
+      let r = 1.0, g = 0.8, b = 0.2;
+      let type = Math.random();
+      let x, y, z = (Math.random()-0.5)*0.2;
+      if (type < 0.4) {
+        // Wheel 1
+        let a = Math.random() * Math.PI * 2, rad = Math.random();
+        x = -1.5 + Math.cos(a)*rad; y = -1 + Math.sin(a)*rad;
+      } else if (type < 0.8) {
+        // Wheel 2
+        let a = Math.random() * Math.PI * 2, rad = Math.random();
+        x = 1.5 + Math.cos(a)*rad; y = -1 + Math.sin(a)*rad;
+      } else {
+        // Frame
         x = (Math.random() - 0.5) * 3;
+        y = (Math.random() - 0.5) * 2;
+        r = 0.9; g = 0.1; b = 0.1;
       }
-      housePos[i*3] = x; housePos[i*3+1] = y - 1; housePos[i*3+2] = z;
-      houseCol[i*3] = 0.83; houseCol[i*3+1] = 0.68; houseCol[i*3+2] = 0.21; 
-    }
-    geometryData.current['house'] = { pos: housePos, col: houseCol };
+      return { x, y, z, r, g, b };
+    });
 
-    // 4. Generate Ball (Childhood/Play)
-    const ballPos = new Float32Array(numParticles * 3);
-    const ballCol = new Float32Array(numParticles * 3);
-    for (let i = 0; i < numParticles; i++) {
-      const theta = Math.random() * 2 * Math.PI;
-      const phi = Math.acos(Math.random() * 2 - 1);
-      const r = 1.5; 
-      ballPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
-      ballPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-      ballPos[i*3+2] = r * Math.cos(phi);
-      // Soft colorful colors
-      ballCol[i*3] = Math.random() * 0.5 + 0.5; 
-      ballCol[i*3+1] = Math.random() * 0.5 + 0.5; 
-      ballCol[i*3+2] = Math.random() * 0.5 + 0.5;
-    }
-    geometryData.current['ball'] = { pos: ballPos, col: ballCol };
+    // 8. Books
+    buildShape('books', () => {
+      let x = (Math.random() - 0.5) * 3;
+      let y = (Math.random() - 0.5) * 3;
+      let z = (Math.random() - 0.5) * 2;
+      // Create horizontal layers
+      y = Math.floor(y * 3) / 3 + Math.random() * 0.1;
+      let r = 0.2 + Math.random()*0.5, g = 0.4 + Math.random()*0.5, b = 0.8;
+      return { x, y, z, r, g, b };
+    });
 
-    // 5. Generate Cross (Faith/Hope)
-    const crossPos = new Float32Array(numParticles * 3);
-    const crossCol = new Float32Array(numParticles * 3);
-    for (let i = 0; i < numParticles; i++) {
-      let x = 0, y = 0, z = (Math.random() - 0.5) * 0.2;
-      if (Math.random() > 0.3) {
-        // Vertical beam
-        y = (Math.random() - 0.5) * 6;
-        x = (Math.random() - 0.5) * 1;
-      } else {
-        // Horizontal beam
-        x = (Math.random() - 0.5) * 4;
-        y = (Math.random() - 0.5) * 1 + 1;
-      }
-      crossPos[i*3] = x; crossPos[i*3+1] = y; crossPos[i*3+2] = z;
-      crossCol[i*3] = 0.5; crossCol[i*3+1] = 0.8; crossCol[i*3+2] = 1.0; // Blue glow
-    }
-    geometryData.current['cross'] = { pos: crossPos, col: crossCol };
+    // 9. Spotlight
+    buildShape('spotlight', () => {
+      let y = Math.random() * 5 - 2.5; // -2.5 to 2.5
+      let rad = (2.5 - y) * 0.5; // wider at bottom
+      let a = Math.random() * Math.PI * 2;
+      let x = Math.cos(a) * Math.random() * rad;
+      let z = Math.sin(a) * Math.random() * rad;
+      return { x, y, z, r: 1, g: 0.9, b: 0.8 };
+    });
 
-    // 6. Load Image for Portrait
+    // 10. Heart
+    buildShape('heart', (i) => {
+      const t = Math.random() * Math.PI * 2;
+      const rad = Math.random() * 0.5 + 0.5; 
+      const x = rad * 16 * Math.pow(Math.sin(t), 3);
+      const y = rad * (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+      return { x: x*0.1, y: y*0.1, z: (Math.random()-0.5)*0.5, r: 1, g: 0.4, b: 0.6 };
+    });
+
+    // Portrait
     const img = new Image();
     img.src = '/images/payo.jpg';
     img.crossOrigin = "Anonymous";
@@ -149,17 +217,14 @@ export function ParticleMorphSystem() {
       const portraitPos = new Float32Array(numParticles * 3);
       const portraitCol = new Float32Array(numParticles * 3);
       
-      let pIdx = 0;
-      // Randomly sample pixels for the particles
       for (let i = 0; i < numParticles; i++) {
         let x = Math.floor(Math.random() * size);
         let y = Math.floor(Math.random() * size);
         let index = (y * size + x) * 4;
         
-        // Scale and center positions
         portraitPos[i*3] = (x / size - 0.5) * 4;
-        portraitPos[i*3+1] = -(y / size - 0.5) * 4; // Invert Y
-        portraitPos[i*3+2] = (Math.random() - 0.5) * 0.2; // slight depth
+        portraitPos[i*3+1] = -(y / size - 0.5) * 4; 
+        portraitPos[i*3+2] = (Math.random() - 0.5) * 0.2; 
         
         portraitCol[i*3] = imgData[index] / 255;
         portraitCol[i*3+1] = imgData[index+1] / 255;
@@ -169,39 +234,27 @@ export function ParticleMorphSystem() {
       setParticlesLoaded(true);
     };
 
-    // Make global morph function for GSAP timeline
     window.morphTo = (shapeName, duration = 2) => {
       if (!meshRef.current || !geometryData.current[shapeName]) return;
-      
       const geom = meshRef.current.geometry;
       const mat = materialRef.current;
       
-      // The current target becomes the current state
       const targetPos = geom.attributes.targetPosition.array;
       const targetCol = geom.attributes.targetColor.array;
       geom.setAttribute('currentPosition', new THREE.BufferAttribute(new Float32Array(targetPos), 3));
       geom.setAttribute('currentColor', new THREE.BufferAttribute(new Float32Array(targetCol), 3));
       
-      // Set new target
       geom.setAttribute('targetPosition', new THREE.BufferAttribute(geometryData.current[shapeName].pos, 3));
       geom.setAttribute('targetColor', new THREE.BufferAttribute(geometryData.current[shapeName].col, 3));
       
       mat.uniforms.uProgress.value = 0;
-      gsap.to(mat.uniforms.uProgress, {
-        value: 1,
-        duration: duration,
-        ease: "power2.inOut"
-      });
+      gsap.to(mat.uniforms.uProgress, { value: 1, duration: duration, ease: "power2.inOut" });
     };
   }, []);
 
   useFrame((state) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
-    }
-    // Rotate entire particle group slowly if it's the universe
+    if (materialRef.current) materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
     if (meshRef.current && materialRef.current && materialRef.current.uniforms.uProgress.value === 1) {
-      // Only rotate when stable, or always rotate slightly
       meshRef.current.rotation.y += 0.001;
     }
   });
@@ -221,10 +274,7 @@ export function ParticleMorphSystem() {
         ref={materialRef}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
-        uniforms={{
-          uProgress: { value: 1.0 },
-          uTime: { value: 0 }
-        }}
+        uniforms={{ uProgress: { value: 1.0 }, uTime: { value: 0 } }}
         transparent
         depthWrite={false}
         blending={THREE.AdditiveBlending}

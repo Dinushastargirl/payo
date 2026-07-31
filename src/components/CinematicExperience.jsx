@@ -8,97 +8,78 @@ export function CinematicExperience() {
   const timelineRef = useRef();
 
   useLayoutEffect(() => {
-    // Master GSAP Timeline for the 3D Scene
     const tl = gsap.timeline({
       paused: true,
       defaults: { ease: "power2.inOut" }
     });
 
-    // Scene 1: The Void
+    const triggerEvent = (time, voiceNum, shape, camZ = 2, camX = 0, camY = 0) => {
+      // Move camera
+      tl.to(camera.position, { z: camZ, x: camX, y: camY, duration: 5, ease: "power1.inOut" }, time - 2);
+      
+      // Play audio & morph shape
+      tl.call(() => {
+        if (window.playVoice && voiceNum > 0) window.playVoice(voiceNum);
+        if (window.morphTo) window.morphTo(shape, 3);
+      }, [], time);
+      
+      // Return to sphere softly before next shape
+      if (shape !== 'heart') {
+        tl.call(() => {
+          if (window.morphTo) window.morphTo('sphere', 3);
+        }, [], time + 6);
+      }
+    };
+
+    tl.to(camera.position, { z: 2, duration: 5 }, 0);
+
+    // 1. Gift Box
+    triggerEvent(5, 1, 'giftbox');
+    // 2. Candle
+    triggerEvent(15, 2, 'candle');
+    // 3. Star
+    triggerEvent(25, 3, 'star');
+    // 4. House
+    triggerEvent(35, 4, 'house');
+    // 5. Key
+    triggerEvent(45, 5, 'key');
+    // 6. Girl on Road
+    triggerEvent(55, 6, 'girl_road');
+    // 7. Bicycle
+    triggerEvent(65, 7, 'bicycle');
+    // 8. Books
+    triggerEvent(75, 8, 'books');
+    // 9. Spotlight
+    triggerEvent(85, 9, 'spotlight');
+    // 10. Heart
+    triggerEvent(95, 10, 'heart', 1.5);
+
+    // Finale: Portrait
+    tl.call(() => {
+      if (window.morphTo) window.morphTo('portrait', 5); // Assembly
+    }, [], 105);
+
+    // Enlarge Portrait
     tl.to(camera.position, {
-      z: 2,
-      duration: 10,
-      ease: "power1.inOut"
-    }, 0);
-
-    // Trigger ball shape (childhood)
-    tl.call(() => {
-      if (window.morphTo) window.morphTo('ball', 3);
-    }, [], 8);
-
-    // Return to sphere
-    tl.call(() => {
-      if (window.morphTo) window.morphTo('sphere', 3);
-    }, [], 15);
-
-    // Trigger house shape (purpose)
-    tl.call(() => {
-      if (window.morphTo) window.morphTo('house', 4);
-    }, [], 23);
-
-    // Scene 3: The Date
-    tl.to(camera.position, {
-      z: 0.5,
-      duration: 5,
+      z: 0.8,
+      duration: 6,
       ease: "power2.inOut"
-    }, 30);
+    }, 107);
 
+    // Dissolve Portrait back to sphere
     tl.call(() => {
-      if (window.morphTo) window.morphTo('sphere', 3);
-    }, [], 32);
+      if (window.morphTo) window.morphTo('sphere', 6);
+    }, [], 116);
 
-    // Trigger Cross/Star (hope)
-    tl.call(() => {
-      if (window.morphTo) window.morphTo('cross', 3);
-    }, [], 64);
-
-    // Scene 4 & 5: Golden World
-    tl.to(camera.position, {
-      z: 2.5,
-      duration: 10,
-      ease: "power2.inOut"
-    }, 60);
-
-    // Return to sphere
-    tl.call(() => {
-      if (window.morphTo) window.morphTo('sphere', 3);
-    }, [], 75);
-
-    // Trigger Heart (love)
-    tl.call(() => {
-      if (window.morphTo) window.morphTo('heart', 4);
-    }, [], 85);
-
-    // Scene 6: The Blessing
-    tl.to(camera.position, {
-      x: 1,
-      y: 0.5,
-      duration: 20,
-      ease: "linear"
-    }, 85);
-
-    // Trigger Portrait assembly
-    tl.call(() => {
-      if (window.morphTo) window.morphTo('portrait', 6);
-    }, [], 112);
-
-    // Final ending (Camera pulls way back, fading to infinity)
+    // Final ending (Camera pulls way back)
     tl.to(camera.position, {
       z: 15,
-      x: 0,
-      y: 0,
       duration: 15,
       ease: "power2.inOut"
-    }, 115);
-
-    // Dissolve portrait
-    tl.call(() => {
-      if (window.morphTo) window.morphTo('sphere', 5);
-    }, [], 122);
+    }, 120);
 
     timelineRef.current = tl;
 
-    // Start playing after a small delay
     setTimeout(() => {
       tl.play();
     }, 1000);
