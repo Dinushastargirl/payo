@@ -1,101 +1,71 @@
-/* ============================================
-   PAYOJA — Dream Room Design System
-   Warm pastel magical theme
-   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Dancing+Script:wght@500;700&display=swap');
 
 :root {
-  /* Colors */
-  --bg-primary: #1a0f2e;
-  --bg-secondary: #2d1b4e;
-  --bg-room: #1e1433;
-  --pink: #f8a4c8;
-  --pink-light: #ffd1e8;
-  --pink-dark: #d4789e;
-  --lavender: #c8a8e9;
-  --lavender-light: #e0d0f5;
-  --peach: #ffcba4;
-  --mint: #a8e6cf;
-  --cream: #fff5eb;
-  --gold: #f0d060;
-  --white: #faf5ff;
-  --white-muted: #c8b8d8;
-  --glass-bg: rgba(255, 255, 255, 0.08);
-  --glass-border: rgba(255, 255, 255, 0.12);
-
-  /* Typography */
-  --font-display: 'Playfair Display', serif;
-  --font-body: 'Outfit', sans-serif;
-
-  /* Transitions */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --midnight-blue: #0b0c10;
+  --deep-purple: #1a0b2e;
+  --gold: #d4af37;
+  --soft-pink: #ffb6c1;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
 }
 
-*,
-*::before,
-*::after {
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html {
-  font-size: 16px;
-  -webkit-text-size-adjust: 100%;
-}
-
 body {
-  font-family: var(--font-body);
-  background: var(--bg-primary);
-  color: var(--white);
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--midnight-blue);
+  color: var(--text-primary);
   overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  min-height: 100dvh;
+  background: radial-gradient(circle at center, var(--deep-purple) 0%, var(--midnight-blue) 100%);
+  min-height: 100vh;
 }
 
-#root {
-  min-height: 100dvh;
+/* Lenis smooth scroll recommended styles */
+html.lenis, html.lenis body {
+  height: auto;
 }
-
-button {
-  font-family: var(--font-body);
-  cursor: pointer;
-  border: none;
-  outline: none;
-  background: none;
-  color: inherit;
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
 }
-
-.screen {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
   overflow: hidden;
-  padding: 1rem;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
 }
 
-.glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
 }
 
-::selection {
-  background: var(--pink);
-  color: var(--bg-primary);
+.handwriting {
+  font-family: 'Dancing Script', cursive;
 }
 
-::-webkit-scrollbar {
-  width: 4px;
+/* Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--lavender);
-  border-radius: 4px;
+.gold-text {
+  color: var(--gold);
+}
+
+.pink-glow {
+  text-shadow: 0 0 10px rgba(255, 182, 193, 0.5);
+}
+
+canvas {
+  touch-action: none;
 }

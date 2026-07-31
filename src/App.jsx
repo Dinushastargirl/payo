@@ -1,48 +1,71 @@
-/**
- * Payoja App — Dream Room
- * Four-screen flow: Entry → Door → Room → Letter
- * Uses AnimatePresence for smooth transitions
- */
-import { useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
-import EntryScreen from './components/EntryScreen';
-import DoorTransition from './components/DoorTransition';
-import RoomScreen from './components/RoomScreen';
-import LetterScreen from './components/LetterScreen';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import Lenis from 'lenis';
+import GalaxyIntro from './components/GalaxyIntro';
+import BirthdayScene from './components/BirthdayScene';
+import MemoryGarden from './components/MemoryGarden';
+import TimelineExperience from './components/TimelineExperience';
+import LoveLetter from './components/LoveLetter';
+import FinaleScene from './components/FinaleScene';
 
-const App = () => {
-  // Screen state: 'entry' | 'door' | 'room' | 'letter'
-  const [screen, setScreen] = useState('entry');
+export default function App() {
+  const [introFinished, setIntroFinished] = useState(false);
+
+  useEffect(() => {
+    // Only init lenis if we have passed the intro
+    if (introFinished) {
+      const lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // https://www.desmos.com/calculator/brs54l4xou
+        direction: 'vertical',
+        gestureDirection: 'vertical',
+        smooth: true,
+        mouseMultiplier: 1,
+        smoothTouch: false,
+        touchMultiplier: 2,
+        infinite: false,
+      });
+
+      function raf(time) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      }
+
+      requestAnimationFrame(raf);
+
+      return () => {
+        lenis.destroy();
+      };
+    }
+  }, [introFinished]);
 
   return (
-    <AnimatePresence mode="wait">
-      {screen === 'entry' && (
-        <EntryScreen
-          key="entry"
-          onOpen={() => setScreen('door')}
-        />
-      )}
+    <div className="bg-[#0b0c10] text-white min-h-screen">
+      {!introFinished ? (
+        <GalaxyIntro onEnter={() => setIntroFinished(true)} />
+      ) : (
+        <main>
+          {/* We use distinct sections for scrolling */}
+          <section className="relative z-10">
+            <BirthdayScene />
+          </section>
+          
+          <section className="relative z-20 bg-gradient-to-b from-transparent to-[#1a0b2e]/50">
+            <MemoryGarden />
+          </section>
 
-      {screen === 'door' && (
-        <DoorTransition
-          key="door"
-          onComplete={() => setScreen('room')}
-        />
-      )}
+          <section className="relative z-30 bg-gradient-to-b from-transparent to-black">
+            <TimelineExperience />
+          </section>
 
-      {screen === 'room' && (
-        <RoomScreen
-          key="room"
-          onLetter={() => setScreen('letter')}
-        />
-      )}
+          <section className="relative z-40 bg-black/50">
+            <LoveLetter />
+          </section>
 
-      {screen === 'letter' && (
-        <LetterScreen key="letter" />
+          <section className="relative z-50">
+            <FinaleScene />
+          </section>
+        </main>
       )}
-    </AnimatePresence>
+    </div>
   );
-};
-
-export default App;
+}
