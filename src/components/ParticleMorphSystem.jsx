@@ -201,10 +201,11 @@ export function ParticleMorphSystem() {
       return { x: x*0.1, y: y*0.1, z: (Math.random()-0.5)*0.5, r: 1, g: 0.4, b: 0.6 };
     });
 
-    // Portrait
+    // Portrait (Fallback to sphere until loaded)
+    geometryData.current['portrait'] = { pos: new Float32Array(spherePos), col: new Float32Array(sphereCol) };
+
     const img = new Image();
     img.src = '/images/payo.jpg';
-    img.crossOrigin = "Anonymous";
     img.onload = () => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -231,7 +232,6 @@ export function ParticleMorphSystem() {
         portraitCol[i*3+2] = imgData[index+2] / 255;
       }
       geometryData.current['portrait'] = { pos: portraitPos, col: portraitCol };
-      setParticlesLoaded(true);
     };
 
     window.morphTo = (shapeName, duration = 2) => {
@@ -258,8 +258,6 @@ export function ParticleMorphSystem() {
       meshRef.current.rotation.y += 0.001;
     }
   });
-
-  if (!particlesLoaded) return null;
 
   return (
     <points ref={meshRef}>

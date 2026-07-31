@@ -26,11 +26,38 @@ function App() {
   const containerRef = useRef();
 
   useEffect(() => {
+    const lines = [
+      "", // 0 is unused
+      "Before your first breath... Before your first smile...", // 1 (gift box)
+      "You were already known...", // 2 (candle)
+      "Every star shines with purpose...", // 3 (star)
+      "And some are meant to change the world...", // 4 (house)
+      "On this day a beautiful light entered this world...", // 5 (key)
+      "You were created with purpose...", // 6 (girl on a road)
+      "You are not an accident...", // 7 (bicycle)
+      "There is hope inside you...", // 8 (books)
+      "There is strength within you... There is beauty in your story...", // 9 (spotlight)
+      "There is a future waiting for you... May God's favor go before you... May His peace remain with you... May His wisdom guide your steps... And may your dreams grow beyond your imagination... And may your heart always know His love... The world is brighter because you are in it..." // 10 (heart)
+    ];
+
     window.playVoice = (num) => {
-      const v = document.getElementById(`voice${num}`);
-      if (v) {
-        v.currentTime = 0;
-        v.play();
+      if ('speechSynthesis' in window && lines[num]) {
+        // Cancel any currently playing speech
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(lines[num]);
+        utterance.volume = 1.0; // Max volume
+        utterance.rate = 0.85; // Slightly slower for cinematic feel
+        utterance.pitch = 0.9;
+        
+        // Try to find a good English voice
+        const voices = window.speechSynthesis.getVoices();
+        const englishVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Natural')));
+        if (englishVoice) {
+          utterance.voice = englishVoice;
+        }
+
+        window.speechSynthesis.speak(utterance);
       }
     };
   }, []);
@@ -82,12 +109,6 @@ function App() {
       <audio id="bgm" loop>
         <source src="/audio/cinematic.mp3" type="audio/mpeg" />
       </audio>
-
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-        <audio key={num} id={`voice${num}`}>
-          <source src={`/audio/voice${num}.mp3`} type="audio/mpeg" />
-        </audio>
-      ))}
     </div>
   );
 }
